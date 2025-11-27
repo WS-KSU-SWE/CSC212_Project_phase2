@@ -51,7 +51,7 @@ public class DoubleLinkedList<T> {
 	}
 	
 	
-	public T retrive() {
+	public T retrieve() {
 		return current.data;
 	}
 	

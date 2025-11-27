@@ -31,12 +31,12 @@ public class Customer {
 		}
 
 		orderList.findFirst();
-		Order currentorder = orderList.retrive();
+		Order currentorder = orderList.retrieve();
 		while (orderList.last() == false) {
 
 			System.out.println(currentorder);
 			orderList.findNext();
-			currentorder = orderList.retrive();
+			currentorder = orderList.retrieve();
 		}
 		System.out.println(currentorder);
 

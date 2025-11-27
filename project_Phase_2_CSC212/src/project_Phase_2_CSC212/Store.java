@@ -3,112 +3,103 @@ package project_Phase_2_CSC212;
 import java.io.*;
 import java.util.*;
 
+
 public class Store {
 
-	private DoubleLinkedList<Product> products;
-	private DoubleLinkedList<Customer> customers;
-	private DoubleLinkedList<Order> orders;
+	private AVLTree<Product> products;
+	private AVLTree<Customer> customers;
+	private AVLTree<Order> orders;
 	
 	
 	public Store() {
 		
-		products = new DoubleLinkedList<Product>();
-		customers = new DoubleLinkedList<Customer>();
-		orders = new DoubleLinkedList<Order>();
+		products = new AVLTree<Product>();
+		customers = new AVLTree<Customer>();
+		orders = new AVLTree<Order>();
 		
 	}
 	
-	public DoubleLinkedList<Product> getProducts() {
+	public AVLTree<Product> getProducts() {
 		return products;
 	}
 
 
-	public DoubleLinkedList<Customer> getCustomers() {
+	public AVLTree<Customer> getCustomers() {
 		return customers;
 	}
 
 
-	public DoubleLinkedList<Order> getOrders() {
+	public AVLTree<Order> getOrders() {
 		return orders;
 	}
 	
 	
-	public void addProduct(int productID, String name, double price, int stock) {
+	public boolean addProduct(int productID, String name, double price, int stock) {
+		
 		Product newProduct = new Product(productID, name, price, stock);
-		products.insert(newProduct);
-		//System.out.println("The product has been added successfully");
+		boolean added = products.insert(newProduct, productID);
+		
+		return added;
 	}
 
-	public void removeProduct() {
-		products.remove();
-		//System.out.println("The product has been removed");
+	public boolean removeProduct(int productId) {
+		
+		boolean removed = products.removeKey(productId);
+		
+		return removed;
 	}
 
-	public void registerCustomer(int customerId, String name, String email) {
-		Customer newCustomer = new Customer(name, email, customerId);
-		customers.insert(newCustomer);
-		//System.out.println("The customer hass been added successfully");
-	}
+	
+	public boolean updateProduct(int productId, String name, double price, int stock) {
 
-	public void updateProduct(String name, double price, int stock) {
-
-		Product updatedProduct = products.retrive();
+		Product updatedProduct;
+		
+		boolean exists = products.findKey(productId);
+		
+		if (!exists) {
+			return false;
+		}
+		
+		updatedProduct = products.retrieve();
+		
 		updatedProduct.setName(name);
 		updatedProduct.setPrice(price);
 		updatedProduct.setStock(stock);
-		//System.out.println("The product has been updated successfully");
+		
+		return true;
+	}
+	
+	
+	public Product searchProduct(int productId) {
+		
+		boolean exists = products.findKey(productId);
+		
+		if (!exists) {
+			return null;
+		}
+		
+		return products.retrieve();
+	}
+	
+	
+	public boolean registerCustomer(int customerId, String name, String email) {
+		
+		Customer newCustomer = new Customer(name, email, customerId);
+		boolean registered = customers.insert(newCustomer, customerId);
 
+		return registered;
 	}
+
 	
-	
-	public boolean searchProduct(int productId) {
+	public Customer searchCustomer(int customerId) {
 		
-		products.findFirst();
+		boolean exists = customers.findKey(customerId);
 		
-		for (int i = 0; i < products.getLength(); ++i) {
-			
-			if (products.retrive().getProductId() == productId) {
-				return true;
-			}
-			
-			products.findNext();
+		if (!exists) {
+			return null;
 		}
 		
-		return false;
-	}
-	
-	
-	public boolean searchProduct(String name) {
-		
-		products.findFirst();
-		
-		for (int i = 0; i < products.getLength(); ++i) {
-			
-			if (products.retrive().getName().equals(name)) {
-				return true;
-			}
-			
-			products.findNext();
-		}
-		
-		return false;
-	}
-	
-	
-	public boolean searchCustomer(int customerId) {
-		
-		customers.findFirst();
-		
-		for (int i = 0; i < customers.getLength(); ++i) {
-			
-			if (customers.retrive().getCustomerId() == customerId) {
-				return true;
-			}
-			
-			customers.findNext();
-		}
-		
-		return false;
+		return customers.retrieve();
 	}
 	
 	
@@ -116,23 +107,39 @@ public class Store {
 		
 		DoubleLinkedList<Product> outOfStock = new DoubleLinkedList<Product>();
 		
-		products.findFirst();
-		
-		for (int i = 0; i < products.getLength(); ++i) {
-			
-			Product product = products.retrive();
-			
-			if (product.isOutOfStock()) {
-				outOfStock.insert(product);
-			}
-			
-			products.findNext();
+		if (!products.findNode(Relative.Root)) {
+			return null;
 		}
 		
-		products.findFirst();
+		outOfStockProductsRec(outOfStock); // O(n log n)
 		
+		products.findNode(Relative.Root);
 		
 		return outOfStock;
+	}
+	
+	// this will traverse the tree in-order 
+	private void outOfStockProductsRec(DoubleLinkedList<Product> outOfStock) { // O(n log n)
+		
+		Product parentProduct = products.retrieve();
+		
+		// if there is a right child, go to it
+		if (products.findNode(Relative.RightChild)) {
+			outOfStockProductsRec(outOfStock);
+		}
+		
+		// we find the parent after going right all the way
+		products.findKey(parentProduct.getProductId());
+		
+		if (parentProduct.isOutOfStock()) {
+			outOfStock.insert(parentProduct);
+		}
+		
+		// if there is a left child, go to it
+		if (products.findNode(Relative.LeftChild)) {
+			outOfStockProductsRec(outOfStock);
+		}
+		
 	}
 	
 	
@@ -144,62 +151,66 @@ public class Store {
 		
 		for (int i = 0; i < productIds.length; ++i) {
 			
-			if (!searchProduct(productIds[i])) {
+			if (!products.findKey(productIds[i])) {
 				return false;
 			}		
-			orderProd.insert(products.retrive());
+			orderProd.insert(products.retrieve());
 	
 		}
 		
-		if (!searchCustomer(customerId)) {
+		if (!customers.findKey(customerId)) {
 			return false;
 		}
 		
 		
-		order = new Order(orderId, totalPrice, orderDate, status, customers.retrive(), orderProd);
+		order = new Order(orderId, totalPrice, orderDate, status, customers.retrieve(), orderProd);
 		
-		customers.retrive().addToOrderList(order);
+		customers.retrieve().addToOrderList(order);
 		
-		orders.insert(order);
+		orders.insert(order, orderId);
 		
 		return true;
 	}
 	
 	
-	public void cancelOrder() {
-		orders.retrive().setStatus("Cancelled");
-	}
-	
-	
-	public boolean searchOrder(int orderId) {
+	public boolean cancelOrder(int orderId) {
 		
-		orders.findFirst();
+		boolean exists = orders.findKey(orderId);
 		
-		for (int i = 0; i < orders.getLength(); ++i) {
-			
-			if (orders.retrive().getOrderId() == orderId) {
-				return true;
-			}
-			
-			orders.findNext();
+		if (!exists) {
+			return false;
 		}
 		
-		return false;
+		orders.retrieve().setStatus("Cancelled");
+		
+		return true;
 	}
 	
 	
-	public DoubleLinkedList<Review> getCustomerReviews() {
+	public Order searchOrder(int orderId) {
 		
-		int currentProdId = products.retrive().getProductId();
-		Customer customer = customers.retrive();
+		boolean exists = orders.findKey(orderId);
+		
+		if (!exists) {
+			return null;
+		}
+		
+		return orders.retrieve();
+	}
+	
+	
+	public DoubleLinkedList<Review> extractReviews(int customerId) {
+		
+		Customer customer = searchCustomer(customerId);
 		DoubleLinkedList<Review> customerReviews = new DoubleLinkedList<Review>();
 		
+		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder();
 		
-		products.findFirst();
+		linearizedProducts.findFirst();
 		
-		for (int i = 0; i < products.getLength(); ++i) {
+		for (int i = 0; i < linearizedProducts.getLength(); ++i) {
 			
-			Product product = products.retrive();
+			Product product = linearizedProducts.retrieve();
 			CustomPriorityQueue<Review> reviewList = product.getReviewList();
 			
 			reviewList.findFirst();
@@ -222,40 +233,80 @@ public class Store {
 				reviewList.findNext();
 			}
 			
-			products.findNext();
+			linearizedProducts.findNext();
 		}
 		
-		searchProduct(currentProdId);
 		
 		return customerReviews;
 	}
 	
-	public DoubleLinkedList<Order> getOrderBetweenDates(Date startDate, Date endDate) {
+	
+	public DoubleLinkedList<Order> getCustomerOrders(int customerId) {
 		
-		System.out.println(startDate.getIntDate());
-		System.out.println(endDate.getIntDate());
+		boolean exists = customers.findKey(customerId);
 		
-		DoubleLinkedList<Order> ordersBetween = new DoubleLinkedList<Order>();
+		if (!exists) {
+			return null;
+		}
 		
-		orders.findFirst();
 		
-		for (int i = 0; i < orders.getLength(); ++i) {
+		return customers.retrieve().getOrderList();
+	}
+	
+	
+	public DoubleLinkedList<Customer> getCustomersReviewed(int productId) {
+		
+		Product product = searchProduct(productId);
+		DoubleLinkedList<Customer> customersReviewed = new DoubleLinkedList<Customer>();
+		
+		CustomPriorityQueue<Review> reviewList;
+		
+		
+		if (product == null) {
+			return null;
+		}
+		
+		reviewList = product.getReviewList();
+		
+		// the review list is already sorted based on customer id
+		reviewList.findFirst();
+		
+		for (int i = 0; i < reviewList.length(); ++i) {
+			customersReviewed.insert(reviewList.retrive().getReviewer());
 			
-			Order order = orders.retrive();
+			reviewList.findNext();
+		}
+		
+		reviewList.findFirst();
+		
+		return customersReviewed;
+	}
+	
+	
+	public AVLTree<Order> getOrderBetweenDates(Date startDate, Date endDate) {
+		
+		AVLTree<Order> ordersBetween = new AVLTree<Order>();
+		
+		DoubleLinkedList<Order> linearOrders = orders.linearizeInOrder();
+		
+		linearOrders.findFirst();
+		
+		for (int i = 0; i < linearOrders.getLength(); ++i) {
+			
+			Order order = linearOrders.retrieve();
 			Date date = order.getOrderDate();
 			
-			
 			if (date.getIntDate() >= startDate.getIntDate() && date.getIntDate() <= endDate.getIntDate()) {
-				ordersBetween.insertFirst(order);
+				ordersBetween.insert(order, order.getOrderId()); // O(log n)
 			}
 				
-			orders.findNext();
+			linearOrders.findNext();
 		}
 		
 		return ordersBetween;
 	}
 	
-	
+	// get common products between 2 customers with an average rating of above 4
 	DoubleLinkedList<Product> commonProducts(int customerId1, int customerId2) {
 		
 		DoubleLinkedList<Product> products1 = new DoubleLinkedList<Product>();
@@ -266,23 +317,23 @@ public class Store {
 		
 		
 		// get all products related to customer 1
-		if (!searchCustomer(customerId1)) {
+		if (!customers.findKey(customerId1)) {
 			
-			return commonProducts;
+			return commonProducts; // empty linked list
 		}
 		
-		orderList = customers.retrive().getOrderList();
+		orderList = customers.retrieve().getOrderList();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {
 			
-			DoubleLinkedList<Product> products = orderList.retrive().getProductList();
+			DoubleLinkedList<Product> products = orderList.retrieve().getProductList();
 			
 			products.findFirst();
 			
 			for (int j = 0; j < products.getLength(); ++j) {
 				
-				products1.insertFirst(products.retrive());
+				products1.insertFirst(products.retrieve());
 				products.findNext();
 			}
 			
@@ -292,23 +343,24 @@ public class Store {
 		//products1.printList();
 		
 		// get all products related to customer 2
-		if (!searchCustomer(customerId2)) {
+		if (!customers.findKey(customerId2)) {
 			
-			return commonProducts;
+			return commonProducts; // empty linked list
 		}
 		
-		orderList = customers.retrive().getOrderList();
+		
+		orderList = customers.retrieve().getOrderList();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {
 			
-			DoubleLinkedList<Product> products = orderList.retrive().getProductList();
+			DoubleLinkedList<Product> products = orderList.retrieve().getProductList();
 			
 			products.findFirst();
 			
 			for (int j = 0; j < products.getLength(); ++j) {
 				
-				products2.insertFirst(products.retrive());
+				products2.insertFirst(products.retrieve());
 				products.findNext();
 			}
 			
@@ -318,7 +370,7 @@ public class Store {
 		
 		// finding common products with an average rating greater than 4
 		
-		// no need to do find first for product1
+		// no need to do findFirst for product1
 		
 		for (int i = 0; i < products1.getLength(); ++i) {
 			
@@ -326,8 +378,8 @@ public class Store {
 			
 			for (int j = 0; j < products2.getLength(); ++j) {
 				
-				Product prod1 = products1.retrive();
-				Product prod2 = products2.retrive();
+				Product prod1 = products1.retrieve();
+				Product prod2 = products2.retrieve();
 				
 				//System.out.println(prod1 + " " + prod1.getAverageRating());
 				//System.out.println(prod2 + " " + prod2.getAverageRating());
@@ -355,21 +407,23 @@ public class Store {
 		CustomPriorityQueue<Product> temp = new CustomPriorityQueue<Product>();
 		
 		
-		products.findFirst();
+		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder();
 		
-		for (int i = 0; i < products.getLength(); ++i) {
+		linearizedProducts.findFirst();
+		
+		for (int i = 0; i < linearizedProducts.getLength(); ++i) {
 			
-			Product product = products.retrive();
+			Product product = linearizedProducts.retrieve();
 			
-			int ratting = (int) Math.ceil(product.getAverageRating() * 100); // get a better scale of the avg rating: 4.5 > 4 ==> 4 = 4 450.33 > 400.2 ==> 450 > 400  
+			int ratting = (int) Math.ceil(product.getAverageRating() * 100); // get a better scale of the avg rating: 4.5 > 4 ==> 4 = 4 | 450.33 > 400.2 ==> 450 > 400  
 			
 			temp.enqueue(product, ratting);
 		
-			products.findNext();
+			linearizedProducts.findNext();
 		}
 		
 		// this is done to avoid issues when products has less than 3 elements
-		for (int i = 0; i < products.getLength(); ++i) {
+		for (int i = 0; i < linearizedProducts.getLength(); ++i) {
 			
 			if (i >= 3) {
 				break;
@@ -383,6 +437,32 @@ public class Store {
 		
 		
 		return top3;
+	}
+	
+	
+	public AVLTree<Product> getProductsBetweenPrices(double minPrice, double maxPrice) {
+		
+		if (minPrice < 0 || maxPrice < 0) {
+			throw new NegativeValueException("Price cannot be negative.");
+		}
+		
+		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder();
+		AVLTree<Product> productsBetween = new AVLTree<Product>();
+		
+		
+		linearizedProducts.findFirst();
+		for (int i = 0; i < linearizedProducts.getLength(); ++i) {
+			
+			Product product = linearizedProducts.retrieve();
+			
+			if (product.getPrice() >= minPrice && product.getPrice() <= maxPrice) {
+				productsBetween.insert(product, product.getProductId()); // O(log n)
+			}
+			
+			linearizedProducts.findNext();
+		}
+		
+		return productsBetween;
 	}
 	
 	
@@ -433,7 +513,7 @@ public class Store {
 			
 			Product product = new Product(productId, name, price, stock);
 			
-			products.insert(product);
+			products.insert(product, productId);
 			
 		}
 		
@@ -472,7 +552,7 @@ public class Store {
 			
 			Customer customer = new Customer(name, email, customerId);
 			
-			customers.insert(customer);
+			customers.insert(customer, customerId);
 			
 		}
 		
@@ -540,7 +620,6 @@ public class Store {
 			
 			int id = Integer.parseInt(productIds.substring(0));
 			
-			
 			intProductIds.insert(id);
 			
 			// insert into an array
@@ -550,7 +629,8 @@ public class Store {
 			
 			intProductIds.findFirst();
 			for (int i = 0; i < intProductIds.getLength(); ++i) {
-				productIdsArr[i] = intProductIds.retrive();
+				
+				productIdsArr[i] = intProductIds.retrieve();
 				intProductIds.findNext();
 			}
 			
@@ -641,59 +721,91 @@ public class Store {
 			
 			comment = comment.substring(1, comment.length() - 1); // remove ""
 			
-			searchProduct(productId);
-			searchCustomer(customerId);
+			Product product = searchProduct(productId);
+			Customer reviewer = searchCustomer(customerId);
 			
-			products.retrive().addReview(rating, comment, customers.retrive());
+			product.addReview(rating, comment, reviewer);
 			
 		}
 		
-		customers.findFirst();
-		products.findFirst();
 		
 		input.close();
 	}
 	
 	
-	public void printProducts() {
-		
-		int id = products.retrive().getProductId();
-		
-		products.findFirst();
-		for (int i = 0; i < products.getLength(); ++i) {
-			System.out.println(products.retrive());
-			products.findNext();
+	// we will use bubble sort. This algo is O(n^3) since compareToIgnoreCase is at worst O(n) (We will assume that the length of the string equals the length of customers)
+	private void sortCustomersAlphabetically(Customer[] customers) {
+			
+		boolean isSorted = true;
+			
+		for (int i = 0; i < customers.length - 1; ++i) {
+				
+			for (int j = 0; j < customers.length - 1 - i; ++j) {
+					
+				String currentName = customers[j].getName();
+				String nextName = customers[j + 1].getName();
+					
+					// a letter in currentName comes after the corresponding letter in nextName
+				if (currentName.compareToIgnoreCase(nextName) > 0) {
+						
+					Customer temp = customers[j];
+					customers[j] = customers[j + 1];
+					customers[j + 1] = temp;
+						
+					isSorted = false;
+						
+				}
+					
+			}
+				
+			if (isSorted) {
+				break;
+			}
+				
+			isSorted = true;
+				
 		}
-		
-		searchProduct(id);
+			
+	}
+	
+	
+	public void printProducts() {
+		products.printInorder();
 	}
 	
 	
 	public void printCustomers() {
-		
-		int id = customers.retrive().getCustomerId();
-		
-		customers.findFirst();
-		for (int i = 0; i < customers.getLength(); ++i) {
-			System.out.println(customers.retrive());
-			customers.findNext();
-		}
-
-		searchCustomer(id);
+		customers.printInorder();
 	}
 	
 	
 	public void printOrders() {
+		orders.printInorder();
+	}
+	
+	
+	public void listCustomersAlphabetically() {
 		
-		int id = orders.retrive().getOrderId();
+		DoubleLinkedList<Customer> customerList = customers.linearizeInOrder();
+		Customer[] customerArr = new Customer[customerList.getLength()];
 		
-		orders.findFirst();
-		for (int i = 0; i < orders.getLength(); ++i) {
-			System.out.println(orders.retrive());
-			orders.findNext();
+		customerList.findFirst();
+		
+		for (int i = 0; i < customerArr.length; ++i) {
+			
+			customerArr[i] = customerList.retrieve();
+			customerList.findNext();
+			
 		}
-
-		searchOrder(id);
+		
+		sortCustomersAlphabetically(customerArr);
+		
+		for (int i = 0; i < customerArr.length; ++i) {
+			System.out.println(customerArr[i]);
+		}
+		
+		System.out.println();
+		
 	}
 	
 	
@@ -721,6 +833,17 @@ public class Store {
 		//System.out.println(store.products.retrive().getReviewList().retrive());
 		
 		//store.getOrderBetweenDates(new Date(2, 3, 2025), new Date(2, 12, 2025)).printList();
+		
+		//store.printProducts();
+		
+		//store.printOrders();
+		
+		//store.printCustomers();
+		
+		//store.listCustomersAlphabetically();
+		
+		//store.getOrderBetweenDates(new Date(1, 2, 2025), new Date(1, 3, 2025)).printInorder();
+		//store.getProductsBetweenPrices(10, 30).printInorder();
 		
 	}
 	

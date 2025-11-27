@@ -25,15 +25,47 @@ public class AVLTree<T> {
 		return current.data;
 	}
 	
+	public boolean findNode(Relative rel) {
+		
+		switch (rel) {
+		
+		case Root:
+			
+			current = root;
+			return root != null; // if root is null then there is no root to find
+		
+		case LeftChild:
+			
+			if (current.left == null) {
+				return false;
+			}
+			
+			current = current.left;
+			
+			return true;
+		
+		case RightChild:
+			
+			if (current.right == null) {
+				return false;
+			}
+			
+			current = current.right;
+			
+			return true;
+			
+		}
+		
+		return false;
+	}
+	
 	
 	public boolean findKey(int key) {
 		
 		AVLNode<T> current = root;
-		AVLNode<T> previous = null;
+	
 		
 		while (current != null) {
-			
-			previous = current;
 			
 			if (current.key == key) {
 				
@@ -51,15 +83,13 @@ public class AVLTree<T> {
 		
 		}
 		
-		this.current = previous;
-		
 		return false;
 	}
 	
 	
 	public void printPreorder() {
 		printPreorderRec(root);
-		System.out.println();
+		System.out.println("\n");
 	}
 	
 	private void printPreorderRec(AVLNode<T> start) {
@@ -69,7 +99,7 @@ public class AVLTree<T> {
 		}
 		
 		
-		System.out.print(start.data + " ");
+		System.out.println(start.data);
 		
 		if (start.left != null) {
 			printPreorderRec(start.left);
@@ -84,7 +114,7 @@ public class AVLTree<T> {
 	
 	public void printInorder() {
 		printInorderRec(root);
-		System.out.println();
+		System.out.println("\n");
 	}
 	
 	private void printInorderRec(AVLNode<T> start) {
@@ -98,7 +128,7 @@ public class AVLTree<T> {
 			printInorderRec(start.left);
 		}
 		
-		System.out.print(start.data + " ");
+		System.out.println(start.data);
 		
 		if (start.right != null) {
 			printInorderRec(start.right);
@@ -109,7 +139,7 @@ public class AVLTree<T> {
 	
 	public void printPostorder() {
 		printPostorderRec(root);
-		System.out.println();
+		System.out.println("\n");
 	}
 	
 	private void printPostorderRec(AVLNode<T> start) {
@@ -117,8 +147,6 @@ public class AVLTree<T> {
 		if (start == null) {
 			return;
 		}
-		
-		
 		
 		
 		if (start.left != null) {
@@ -130,7 +158,7 @@ public class AVLTree<T> {
 			printPostorderRec(start.right);
 		}
 		
-		System.out.print(start.data + " ");
+		System.out.println(start.data);
 		
 	}
 	
@@ -150,6 +178,36 @@ public class AVLTree<T> {
 			case postorder:
 				printPostorder();
 				break;
+		}
+		
+	}
+	
+	
+	public DoubleLinkedList<T> linearizeInOrder() {
+		
+		DoubleLinkedList<T> linearData = new DoubleLinkedList<T>();
+		
+		linearizeInOrder(linearData, root);
+		
+		return linearData;
+	}
+	
+	
+	private void linearizeInOrder(DoubleLinkedList<T> linearData, AVLNode<T> start) {
+		
+		if (start == null) {
+			return;
+		}
+		
+		
+		if (start.right != null) {
+			linearizeInOrder(linearData, start.right);
+		}
+		
+		linearData.insert(start.data);
+		
+		if (start.left != null) {
+			linearizeInOrder(linearData, start.left);
 		}
 		
 	}
@@ -211,18 +269,6 @@ public class AVLTree<T> {
 	}
 	
 	
-	public BooleanWrapper insert(T data, int key) {
-		
-		AVLNode<T> newNode = new AVLNode<T>(data, key);
-		BooleanWrapper isInserted = new BooleanWrapper(true);
-		
-		root = rec_insert(newNode, root, isInserted);
-		
-		
-		return isInserted;
-	}
-	
-	
 	public int getBalance(AVLNode<T> node) {
 		
 		if (node == null) {
@@ -231,6 +277,21 @@ public class AVLTree<T> {
 		
 		return height(node.right) - height(node.left); 
 	}
+	
+	
+	public boolean insert(T data, int key) {
+		
+		AVLNode<T> newNode = new AVLNode<T>(data, key);
+		BooleanWrapper isInserted = new BooleanWrapper(true);
+		
+		root = rec_insert(newNode, root, isInserted);
+		
+		
+		return isInserted.get();
+	}
+	
+	
+	
 	
 	
 	private AVLNode<T> rec_insert(AVLNode<T> newNode, AVLNode<T> current, BooleanWrapper inserted) {
