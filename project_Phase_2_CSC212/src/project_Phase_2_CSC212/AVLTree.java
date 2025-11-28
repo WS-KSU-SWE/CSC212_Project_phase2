@@ -25,6 +25,7 @@ public class AVLTree<T> {
 		return current.data;
 	}
 	
+	
 	public boolean findNode(Relative rel) {
 		
 		switch (rel) {

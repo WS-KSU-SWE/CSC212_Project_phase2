@@ -42,6 +42,7 @@ public class Store {
 		return added;
 	}
 
+	
 	public boolean removeProduct(int productId) {
 		
 		boolean removed = products.removeKey(productId);
