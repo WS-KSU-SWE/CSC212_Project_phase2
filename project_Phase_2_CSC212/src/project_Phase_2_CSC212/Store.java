@@ -33,7 +33,7 @@ public class Store {
 		return orders;
 	}
 	
-	
+	// log n
 	public boolean addProduct(int productID, String name, double price, int stock) {
 		
 		Product newProduct = new Product(productID, name, price, stock);
@@ -42,7 +42,7 @@ public class Store {
 		return added;
 	}
 
-	
+	// O(log n)
 	public boolean removeProduct(int productId) {
 		
 		boolean removed = products.removeKey(productId);
@@ -50,12 +50,12 @@ public class Store {
 		return removed;
 	}
 
-	
+	// O(log n)
 	public boolean updateProduct(int productId, String name, double price, int stock) {
 
 		Product updatedProduct;
 		
-		boolean exists = products.findKey(productId);
+		boolean exists = products.findKey(productId); // O(log n)
 		
 		if (!exists) {
 			return false;
@@ -70,7 +70,7 @@ public class Store {
 		return true;
 	}
 	
-	
+	// O(log n)
 	public Product searchProduct(int productId) {
 		
 		boolean exists = products.findKey(productId);
@@ -82,7 +82,7 @@ public class Store {
 		return products.retrieve();
 	}
 	
-	
+	// O(log n)
 	public boolean registerCustomer(int customerId, String name, String email) {
 		
 		Customer newCustomer = new Customer(name, email, customerId);
@@ -91,7 +91,7 @@ public class Store {
 		return registered;
 	}
 
-	
+	// O(log n)
 	public Customer searchCustomer(int customerId) {
 		
 		boolean exists = customers.findKey(customerId);
@@ -103,12 +103,12 @@ public class Store {
 		return customers.retrieve();
 	}
 	
-	
+	// O (n log n) This method can be done in O(n) if we linearize the products tree. This was done recursively to demonstrate that we can traverse the tree in order as a user of the ADT 
 	public DoubleLinkedList<Product> outOfStockProducts() {
 		
 		DoubleLinkedList<Product> outOfStock = new DoubleLinkedList<Product>();
 		
-		if (!products.findNode(Relative.Root)) {
+		if (!products.findNode(Relative.Root)) { // if products is empty
 			return null;
 		}
 		
@@ -143,7 +143,7 @@ public class Store {
 		
 	}
 	
-	
+	// O(n log n)
 	public boolean placeOrder(int orderId, int[] productIds, double totalPrice, Date orderDate, int customerId, String status) {
 		
 		Order order;
@@ -152,7 +152,7 @@ public class Store {
 		
 		for (int i = 0; i < productIds.length; ++i) {
 			
-			if (!products.findKey(productIds[i])) {
+			if (!products.findKey(productIds[i])) { // log n
 				return false;
 			}		
 			orderProd.insert(products.retrieve());
@@ -173,7 +173,7 @@ public class Store {
 		return true;
 	}
 	
-	
+	// O(log n)
 	public boolean cancelOrder(int orderId) {
 		
 		boolean exists = orders.findKey(orderId);
@@ -187,7 +187,7 @@ public class Store {
 		return true;
 	}
 	
-	
+	// O(log n)
 	public Order searchOrder(int orderId) {
 		
 		boolean exists = orders.findKey(orderId);
@@ -199,13 +199,13 @@ public class Store {
 		return orders.retrieve();
 	}
 	
-	
+	// O (n^2)
 	public DoubleLinkedList<Review> extractReviews(int customerId) {
 		
 		Customer customer = searchCustomer(customerId);
 		DoubleLinkedList<Review> customerReviews = new DoubleLinkedList<Review>();
 		
-		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder();
+		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder(); // this turns the tree of products to a list of products sorted in order O(n)
 		
 		linearizedProducts.findFirst();
 		
@@ -241,7 +241,7 @@ public class Store {
 		return customerReviews;
 	}
 	
-	
+	// O(log n)
 	public AVLTree<Order> getCustomerOrders(int customerId) {
 		
 		boolean exists = customers.findKey(customerId);
@@ -254,7 +254,7 @@ public class Store {
 		return customers.retrieve().getOrderList();
 	}
 	
-	
+	// O (n)
 	public DoubleLinkedList<Customer> getCustomersReviewed(int productId) {
 		
 		Product product = searchProduct(productId);
@@ -283,32 +283,52 @@ public class Store {
 		return customersReviewed;
 	}
 	
-	
+	// O(n log n)
 	public AVLTree<Order> getOrderBetweenDates(Date startDate, Date endDate) {
 		
 		AVLTree<Order> ordersBetween = new AVLTree<Order>();
 		
-		DoubleLinkedList<Order> linearOrders = orders.linearizeInOrder();
-		
-		linearOrders.findFirst();
-		
-		for (int i = 0; i < linearOrders.getLength(); ++i) {
-			
-			Order order = linearOrders.retrieve();
-			Date date = order.getOrderDate();
-			
-			if (date.getIntDate() >= startDate.getIntDate() && date.getIntDate() <= endDate.getIntDate()) {
-				ordersBetween.insert(order, order.getOrderId()); // O(log n)
-			}
-				
-			linearOrders.findNext();
+		if (!orders.findNode(Relative.Root)) { // if orders is empty
+			return null;
 		}
+		
+		getOrderBetweenDatesRec(startDate, endDate, ordersBetween);
+		
+		
+		orders.findNode(Relative.Root);
 		
 		return ordersBetween;
 	}
 	
+	// traverse in order
+	private void getOrderBetweenDatesRec(Date startDate, Date endDate, AVLTree<Order> ordersBetween) { // O(n log n)
+		
+		Order currentOrder = orders.retrieve();
+		Date date = currentOrder.getOrderDate();
+		
+		// go right
+		if (orders.findNode(Relative.RightChild)) {
+			getOrderBetweenDatesRec(startDate, endDate, ordersBetween);
+		}
+		
+		// go back to current order and process it
+		
+		orders.findKey(currentOrder.getOrderId());
+		
+		if (date.getIntDate() >= startDate.getIntDate() && date.getIntDate() <= endDate.getIntDate()) {
+			ordersBetween.insert(currentOrder, currentOrder.getOrderId()); // O(log n)
+		}
+		
+		// go left
+		if (orders.findNode(Relative.LeftChild)) {
+			getOrderBetweenDatesRec(startDate, endDate, ordersBetween);
+		}
+		
+	}
+	
+	
 	// get common products between 2 customers with an average rating of above 4
-	DoubleLinkedList<Product> commonProducts(int customerId1, int customerId2) {
+	DoubleLinkedList<Product> commonProducts(int customerId1, int customerId2) { // O(n^2)
 		
 		DoubleLinkedList<Product> products1 = new DoubleLinkedList<Product>();
 		DoubleLinkedList<Product> products2 = new DoubleLinkedList<Product>();
@@ -340,8 +360,6 @@ public class Store {
 			
 			orderList.findNext();
 		}
-		
-		//products1.printList();
 		
 		// get all products related to customer 2
 		if (!customers.findKey(customerId2)) {
@@ -400,7 +418,7 @@ public class Store {
 		return commonProducts;
 	}
 	
-	
+	// O(n^2)
 	public DoubleLinkedList<Product> getTop3Products() {
 		
 		DoubleLinkedList<Product> top3 = new DoubleLinkedList<Product>();
@@ -440,7 +458,7 @@ public class Store {
 		return top3;
 	}
 	
-	
+	// O(n) 
 	public AVLTree<Product> getProductsBetweenPrices(double minPrice, double maxPrice) {
 		
 		if (minPrice < 0 || maxPrice < 0) {
@@ -466,7 +484,7 @@ public class Store {
 		return productsBetween;
 	}
 	
-	
+	// n^2 log n
 	public void readCSV() throws IOException {
 		readProductsCSV();
 		readCustomersCSV();
@@ -475,7 +493,7 @@ public class Store {
 		
 	}
 	
-	
+	// O(n)
 	private void readProductsCSV() throws IOException {
 		
 		Scanner input = new Scanner(new File("products.csv"));
@@ -521,7 +539,7 @@ public class Store {
 		input.close();
 	}
 	
-	
+	// O(n)
 	private void readCustomersCSV() throws IOException {
 		
 		Scanner input = new Scanner(new File("customers.csv"));
@@ -560,7 +578,7 @@ public class Store {
 		input.close();
 	}
 	
-	
+	// O(n^2 log n)
 	private void readOrdersCSV() throws IOException {
 		
 		Scanner input = new Scanner(new File("orders.csv"));
@@ -671,7 +689,7 @@ public class Store {
 		input.close();
 	}
 	
-	
+	// O(n)
 	private void readReviewsCSV() throws IOException {
 		
 		Scanner input = new Scanner(new File("reviews.csv"));
@@ -769,22 +787,22 @@ public class Store {
 			
 	}
 	
-	
+	// O(n)
 	public void printProducts() {
 		products.printInorder();
 	}
 	
-	
+	// O(n)
 	public void printCustomers() {
 		customers.printInorder();
 	}
 	
-	
+	// O(n)
 	public void printOrders() {
 		orders.printInorder();
 	}
 	
-	
+	// O(n^3)
 	public void listCustomersAlphabetically() {
 		
 		DoubleLinkedList<Customer> customerList = customers.linearizeInOrder();
