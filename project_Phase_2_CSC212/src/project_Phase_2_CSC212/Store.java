@@ -242,7 +242,7 @@ public class Store {
 	}
 	
 	
-	public DoubleLinkedList<Order> getCustomerOrders(int customerId) {
+	public AVLTree<Order> getCustomerOrders(int customerId) {
 		
 		boolean exists = customers.findKey(customerId);
 		
@@ -323,7 +323,7 @@ public class Store {
 			return commonProducts; // empty linked list
 		}
 		
-		orderList = customers.retrieve().getOrderList();
+		orderList = customers.retrieve().getOrderList().linearizeInOrder();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {
@@ -350,7 +350,7 @@ public class Store {
 		}
 		
 		
-		orderList = customers.retrieve().getOrderList();
+		orderList = customers.retrieve().getOrderList().linearizeInOrder();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {

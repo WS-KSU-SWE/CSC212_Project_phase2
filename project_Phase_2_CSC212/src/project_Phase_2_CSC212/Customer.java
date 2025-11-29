@@ -6,7 +6,7 @@ public class Customer {
 	private String name;
 	private String email;
 
-	private DoubleLinkedList<Order> orderList = new DoubleLinkedList<Order>();
+	private AVLTree<Order> orderTree = new AVLTree<Order>();
 
 	
 	public Customer(String name, String email, int customerId) {
@@ -15,34 +15,26 @@ public class Customer {
 		this.email = email;
 		this.name = name;
 		
-		orderList = new DoubleLinkedList<Order>();
+		orderTree = new AVLTree<Order>();
 
 	}
 
 	public void addToOrderList(Order order) {
-		this.orderList.insert(order);
+		this.orderTree.insert(order, order.getOrderId());
 	}
 
 	public void viewOrderHistory() {
 		
-		if (orderList.empty()) {
+		if (orderTree.empty()) {
 			System.out.println("There are no orders ");
 			return;
 		}
 
-		orderList.findFirst();
-		Order currentorder = orderList.retrieve();
-		while (orderList.last() == false) {
-
-			System.out.println(currentorder);
-			orderList.findNext();
-			currentorder = orderList.retrieve();
-		}
-		System.out.println(currentorder);
-
+		orderTree.printInorder();
+		System.out.println();
 	}
 
-	public void makeReview( int rating, String comment, Product product) {
+	public void makeReview(int rating, String comment, Product product) {
 		product.addReview(rating, comment, this);
 	}
 
@@ -86,8 +78,8 @@ public class Customer {
 		this.email = email;
 	}
 
-	public DoubleLinkedList<Order> getOrderList() {
-		return orderList;
+	public AVLTree<Order> getOrderList() {
+		return orderTree;
 	}
 
 	
