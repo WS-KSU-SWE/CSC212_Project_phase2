@@ -273,7 +273,7 @@ public class Store {
 		reviewList.findFirst();
 		
 		for (int i = 0; i < reviewList.length(); ++i) {
-			customersReviewed.insert(reviewList.retrive().getReviewer());
+			customersReviewed.insertFirst(reviewList.retrive().getReviewer());
 			
 			reviewList.findNext();
 		}
@@ -458,33 +458,55 @@ public class Store {
 		return top3;
 	}
 	
-	// O(n) 
+	// O(n log n) 
 	public AVLTree<Product> getProductsBetweenPrices(double minPrice, double maxPrice) {
 		
 		if (minPrice < 0 || maxPrice < 0) {
 			throw new NegativeValueException("Price cannot be negative.");
 		}
 		
-		DoubleLinkedList<Product> linearizedProducts = products.linearizeInOrder();
 		AVLTree<Product> productsBetween = new AVLTree<Product>();
 		
-		
-		linearizedProducts.findFirst();
-		for (int i = 0; i < linearizedProducts.getLength(); ++i) {
-			
-			Product product = linearizedProducts.retrieve();
-			
-			if (product.getPrice() >= minPrice && product.getPrice() <= maxPrice) {
-				productsBetween.insert(product, product.getProductId()); // O(log n)
-			}
-			
-			linearizedProducts.findNext();
+		if (!products.findNode(Relative.Root)) { // if products is empty
+			return null;
 		}
+		
+		getProductsBetweenPricesRec(minPrice, maxPrice, productsBetween); // O(n log n)
+		
+		products.findNode(Relative.Root);
+		
 		
 		return productsBetween;
 	}
 	
-	// n^2 log n
+	
+	// traverse in order
+	private void getProductsBetweenPricesRec(double minPrice, double maxPrice, AVLTree<Product> productsBetween) { // O(n log n)
+			
+		Product currentProduct = products.retrieve();
+			
+		// go right
+		if (products.findNode(Relative.RightChild)) {
+			getProductsBetweenPricesRec(minPrice, maxPrice, productsBetween);
+		}
+			
+		// go back to current order and process it
+			
+		products.findKey(currentProduct.getProductId());
+		
+		if (currentProduct.getPrice() >= minPrice && currentProduct.getPrice() <= maxPrice) {
+			productsBetween.insert(currentProduct, currentProduct.getProductId()); // O(log n)
+		}
+			
+		// go left
+		if (products.findNode(Relative.LeftChild)) {
+			getProductsBetweenPricesRec(minPrice, maxPrice, productsBetween);
+		}
+			
+	}
+	
+	
+	// O(n^2 log n)
 	public void readCSV() throws IOException {
 		readProductsCSV();
 		readCustomersCSV();
@@ -863,6 +885,8 @@ public class Store {
 		
 		//store.getOrderBetweenDates(new Date(1, 2, 2025), new Date(1, 3, 2025)).printInorder();
 		//store.getProductsBetweenPrices(10, 30).printInorder();
+		
+		//store.getCustomersReviewed(103).printList();
 		
 	}
 	
