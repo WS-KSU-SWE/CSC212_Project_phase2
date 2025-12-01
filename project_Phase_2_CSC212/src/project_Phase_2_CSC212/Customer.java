@@ -78,7 +78,7 @@ public class Customer {
 		this.email = email;
 	}
 
-	public AVLTree<Order> getOrderList() {
+	public AVLTree<Order> getOrderTree() {
 		return orderTree;
 	}
 

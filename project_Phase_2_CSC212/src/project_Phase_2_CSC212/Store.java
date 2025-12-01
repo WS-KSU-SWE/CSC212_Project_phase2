@@ -152,7 +152,7 @@ public class Store {
 		
 		for (int i = 0; i < productIds.length; ++i) {
 			
-			if (!products.findKey(productIds[i])) { // log n
+			if (!products.findKey(productIds[i])) { // O (log n)
 				return false;
 			}		
 			orderProd.insert(products.retrieve());
@@ -251,7 +251,7 @@ public class Store {
 		}
 		
 		
-		return customers.retrieve().getOrderList();
+		return customers.retrieve().getOrderTree();
 	}
 	
 	// O (n)
@@ -343,7 +343,7 @@ public class Store {
 			return commonProducts; // empty linked list
 		}
 		
-		orderList = customers.retrieve().getOrderList().linearizeInOrder();
+		orderList = customers.retrieve().getOrderTree().linearizeInOrder();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {
@@ -368,7 +368,7 @@ public class Store {
 		}
 		
 		
-		orderList = customers.retrieve().getOrderList().linearizeInOrder();
+		orderList = customers.retrieve().getOrderTree().linearizeInOrder();
 		
 		orderList.findFirst();
 		for (int i = 0; i < orderList.getLength(); ++i) {
