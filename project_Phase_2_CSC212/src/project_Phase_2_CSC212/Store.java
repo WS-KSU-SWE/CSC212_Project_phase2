@@ -166,7 +166,7 @@ public class Store {
 		
 		order = new Order(orderId, totalPrice, orderDate, status, customers.retrieve(), orderProd);
 		
-		customers.retrieve().addToOrderList(order);
+		customers.retrieve().addToOrderTree(order);
 		
 		orders.insert(order, orderId);
 		

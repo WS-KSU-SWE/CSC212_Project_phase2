@@ -19,7 +19,7 @@ public class Customer {
 
 	}
 
-	public void addToOrderList(Order order) {
+	public void addToOrderTree(Order order) {
 		this.orderTree.insert(order, order.getOrderId());
 	}
 
