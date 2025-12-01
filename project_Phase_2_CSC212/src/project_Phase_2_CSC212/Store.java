@@ -33,7 +33,7 @@ public class Store {
 		return orders;
 	}
 	
-	// log n
+	// O(log n)
 	public boolean addProduct(int productID, String name, double price, int stock) {
 		
 		Product newProduct = new Product(productID, name, price, stock);
