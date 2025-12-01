@@ -232,9 +232,10 @@ public class Main {
 					break;
 			}
 			
-			in.close();
+			
 		}
 		
+		in.close();
 	}
 	
 }
