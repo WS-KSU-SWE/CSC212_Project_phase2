@@ -173,7 +173,7 @@ public class Store {
 		return true;
 	}
 	
-	// O(log n)
+	// O(log n) 
 	public boolean cancelOrder(int orderId) {
 		
 		boolean exists = orders.findKey(orderId);
